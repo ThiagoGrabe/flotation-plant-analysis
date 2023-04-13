@@ -115,5 +115,4 @@ random_forest_dir/
 multirun/
 
 # data
-*.csv
-*.zip
+src/get_data/data
