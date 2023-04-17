@@ -45,7 +45,7 @@ def go(config: DictConfig):
                 "main",
                 parameters={
                     "sample": config["etl"]["sample"],
-                    "artifact_name": "sample.csv",
+                    "artifact_name": "MiningProcess_Flotation_Plant_Database.csv",
                     "artifact_type": "raw_data",
                     "artifact_description": "Raw file as downloaded"
                 },
@@ -56,7 +56,7 @@ def go(config: DictConfig):
                 os.path.join(hydra.utils.get_original_cwd(), "src", "basic_cleaning"),
                 "main",
                 parameters={
-                    "input_artifact": "sample.csv:latest",
+                    "input_artifact": "MiningProcess_Flotation_Plant_Database.csv:latest",
                     "output_artifact": "clean_sample.csv",
                     "output_type": "clean_sample",
                     "output_description": "Data with outliers and null values removed",

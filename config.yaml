@@ -1,7 +1,7 @@
 main:
-  components_repository: "https://github.com/ThiagoGrabe/nd0821-c2-build-model-workflow-starter.git#components"
+  components_repository: "https://https://github.com/ThiagoGrabe/flotation-plant-analysis.git#components"
   # All the intermediate files will be copied to this directory at the end of the run.
-  source_repository: "https://github.com/ThiagoGrabe/nd0821-c2-build-model-workflow-starter.git#src"
+  source_repository: "https://https://github.com/ThiagoGrabe/flotation-plant-analysis.git#src"
   # Set this to null if you are running in prod
   project_name: ihm
   experiment_name: development
