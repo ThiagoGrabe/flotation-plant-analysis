@@ -57,11 +57,9 @@ def go(config: DictConfig):
                 "main",
                 parameters={
                     "input_artifact": "MiningProcess_Flotation_Plant_Database.csv:latest",
-                    "output_artifact": "clean_sample.csv",
-                    "output_type": "clean_sample",
-                    "output_description": "Data with outliers and null values removed",
-                    "min_price": config['etl']['min_price'],
-                    "max_price": config['etl']['max_price']
+                    "output_artifact": "cleansed_mining_flotation_plant.csv",
+                    "output_type": "cleansed_mining_flotation_plant",
+                    "output_description": "Cleansed data."
                 },
             )
 
@@ -70,8 +68,8 @@ def go(config: DictConfig):
                 os.path.join(hydra.utils.get_original_cwd(), "src", "data_check"),
                 "main",
                 parameters={
-                    "ref": "clean_sample.csv:reference",
-                    "csv": "clean_sample.csv:latest",
+                    "ref": "cleansed_mining_flotation_plant.csv:reference",
+                    "csv": "cleansed_mining_flotation_plant.csv:latest",
                     "min_price": config['etl']['min_price'],
                     "max_price": config['etl']['max_price'],
                     "kl_threshold" : config["data_check"]["kl_threshold"]
@@ -83,7 +81,7 @@ def go(config: DictConfig):
                 os.path.join(hydra.utils.get_original_cwd(), "src", "train_val_test_split"),
                 "main",
                 parameters={
-                    "input": "clean_sample.csv:latest",
+                    "input": "cleansed_mining_flotation_plant.csv:latest",
                     "test_size": config['modeling']['test_size'],
                     "random_seed": config['modeling']['random_seed'],
                     "stratify_by": config['modeling']['stratify_by']

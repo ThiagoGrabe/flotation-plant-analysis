@@ -6,6 +6,7 @@ import argparse
 import logging
 import wandb
 import pandas as pd
+import numpy as np
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
@@ -23,24 +24,52 @@ def go(args):
     # particular version of the artifact
     artifact_local_path = run.use_artifact(args.input_artifact).file()
 
-    data = pd.read_csv(artifact_local_path)
+    data = pd.read_csv(artifact_local_path, decimal=",",parse_dates=["date"], index_col="date")
     df = data.copy()
     logger.info('Dataset loaded.')
 
     ###### Data Cleaning ######
-    # Drop outliers
-    min_price = float(args.min_price)
-    max_price = float(args.max_price)
-    idx = df['price'].between(min_price, max_price)
-    df = df[idx].copy()
-    # Drop rows that are not in the proper geolocation
-    idx = df['longitude'].between(-74.25, -73.50) & df['latitude'].between(40.5, 41.2)
-    df = df[idx].copy()
-    # Convert last_review to datetime
-    df['last_review'] = pd.to_datetime(df['last_review'])
+
+    # As we have problatic dates in March, we start ou analysis from April.
+    df = df.loc["2017-04-01":]
+
+    # Slicing the data and getting the data from April 10th
+    new_val = df.loc['2017-04-10 00:00:00'].values[-1]
+    append_val = pd.DataFrame(new_val.reshape(1,-1), columns=df.columns.tolist())
+    append_val['date'] = '2017-04-10 00:00:00'
+    append_val['date'] = pd.to_datetime(append_val['date'])
+    append_val = append_val.set_index('date', drop=True)
+    df = pd.concat([df, append_val]).reset_index().set_index('date', drop=True)
+    df = df.sort_index()
+
+    # There are some interpolated values for % Silica and % Iron. Instead of using the interpolated data, we take the median of the values 
+    # for an hour with the interpolated values.
+    for idx in df.index.unique():
+        silica_values = df.loc[idx]['% Silica Concentrate'].unique()
+        iron_values   = df.loc[idx]['% Iron Concentrate'].unique()
+        if len(silica_values) > 1:
+            df.loc[idx, "% Silica Concentrate"] = np.median(df.loc[idx]["% Silica Concentrate"].values)
+        if len(iron_values) > 1:
+            df.loc[idx, "% Iron Concentrate"] = np.median(df.loc[idx]["% Iron Concentrate"].values)
+
+    df.index = pd.date_range(start='2017-04-01 00:00:00', end='2017-09-09 23:59:40', freq='20s')
+    df.index.names = ['date']
     logger.info('Dataset cleaned.')
+
+    logger.info('Starting Basic Feature Engineering.')
+    # Basic Feature Engineering
+    df['Shift'] = np.nan
+    for idx in df.between_time(start_time='00:00:00', end_time='08:00:00').index.tolist():
+        df.loc[idx, "Shift"] = "A"
+    for idx in df.between_time(start_time='08:01:00', end_time='16:00:00').index.tolist():
+        df.loc[idx, "Shift"] = "B"
+    for idx in df.between_time(start_time='16:01:00', end_time='23:59:59').index.tolist():
+        df.loc[idx, "Shift"] = "C"
+    logger.info('Finished Basic Feature Engineering.')
+    
+    logger.info('Saving Dataset.')
     # Saving to CSV
-    df.to_csv(args.output_artifact, index=False)
+    df.to_csv(args.output_artifact, index=True)
     logger.info('Dataset saved.')
 
     # Uploading to W&B
@@ -49,7 +78,7 @@ def go(args):
      type=args.output_type,
      description=args.output_description,
     )
-    artifact.add_file("clean_sample.csv")
+    artifact.add_file("cleansed_mining_flotation_plant.csv")
     run.log_artifact(artifact)
     logger.info('Logged Artifact.')
 
@@ -86,21 +115,6 @@ if __name__ == "__main__":
         help="Description of the artifact.",
         required=True
     )
-
-    parser.add_argument(
-        "--min_price", 
-        type=float,
-        help="Min price",
-        required=True
-    )
-
-    parser.add_argument(
-        "--max_price", 
-        type=float,
-        help="Max price",
-        required=True
-    )
-
 
     args = parser.parse_args()
 
