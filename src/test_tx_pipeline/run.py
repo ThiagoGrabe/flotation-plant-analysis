@@ -7,10 +7,7 @@ import logging
 import wandb
 import mlflow
 import pandas as pd
-from sklearn.metrics import mean_absolute_error
-
-from wandb_utils.log_artifact import log_artifact
-
+from importlib import import_module
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
 logger = logging.getLogger()
@@ -30,25 +27,23 @@ def go(args):
     test_dataset_path = run.use_artifact(args.test_dataset).file()
 
     # Read test dataset
-    X_test = pd.read_csv(test_dataset_path)
-    y_test = X_test.pop("price")
+    X_test = pd.read_csv(test_dataset_path, decimal=",").dropna()
+    y_test = X_test.pop("% Silica Concentrate_lag_-180")
 
     logger.info("Loading model and performing inference on test set")
     sk_pipe = mlflow.sklearn.load_model(model_local_path)
     y_pred = sk_pipe.predict(X_test)
 
-    logger.info("Scoring")
-    r_squared = sk_pipe.score(X_test, y_test)
-
-    mae = mean_absolute_error(y_test, y_pred)
-
-    logger.info(f"Score: {r_squared}")
-    logger.info(f"MAE: {mae}")
-
-    # Log MAE and r2
-    run.summary['r2'] = r_squared
-    run.summary['mae'] = mae
-
+    logger.info("Metrics on Testing Set\n")
+    for metric_name in ['r2_score','mean_squared_error','mean_absolute_percentage_error','mean_absolute_error']:
+        module = import_module('sklearn.metrics')
+        metric = getattr(module,metric_name)
+        if metric_name == 'mean_squared_error':
+            metric_value = metric(y_test, y_pred, squared=False)
+        else:
+            metric_value = metric(y_test, y_pred)
+            logger.info(f"Validation {metric_name}: {round(metric_value,4)}")
+            run.log({f"Validation {metric_name}": round(metric_value,4)})
 
 if __name__ == "__main__":
 

@@ -8,6 +8,11 @@ etl:
   sample: "MiningProcess_Flotation_Plant_Database.csv"
 data_check:
   kl_threshold: 0.2
+deploy:
+  module: "sklearn.ensemble"
+  estimator: "RandomForestRegressor"
+  model_name: "random_forest"
+  tag: "prod"
 modeling:
   # Fraction of data to use for test (the remaining will be used for train and validation)
   test_size: 0.2

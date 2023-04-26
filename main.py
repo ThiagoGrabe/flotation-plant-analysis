@@ -146,13 +146,17 @@ def go(config: DictConfig):
                         }
                     )
 
-        if "test_regression_model" in active_steps:
-             _ = mlflow.run(
-                 os.path.join(hydra.utils.get_original_cwd(), "src", "test_regression_model"),
+        if "test_tx_pipeline" in active_steps:
+             
+            model_name = config["deploy"]["model_name"]
+            tag = config["deploy"]["tag"]
+
+            _ = mlflow.run(
+                os.path.join(hydra.utils.get_original_cwd(), "src", "test_tx_pipeline"),
                 "main",
                 parameters={
-                    "mlflow_model": "random_forest_export:prod",
-                    "test_dataset": "test_data.csv:latest"
+                    "mlflow_model": f"{model_name}_export:{tag}",
+                    "test_dataset": "test_tx.csv:latest"
                     }
                 )
 

@@ -33,7 +33,7 @@ def go(args):
         logger.info('Creating the Time Series Data.')
         kwargs = {
         "lag_feature": {
-            "lag": [180, 360, 540, 720],
+            "lag": [-180, -360, -540, -720],
             }
         }
         transformer = WindowSummarizer(**kwargs, target_cols=['% Silica Concentrate','% Iron Concentrate'])

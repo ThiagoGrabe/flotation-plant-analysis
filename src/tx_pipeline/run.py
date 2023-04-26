@@ -54,7 +54,7 @@ def go(args):
     X = pd.read_csv(trainval_local_path, decimal=",")
     X = X.apply(pd.to_numeric).dropna()
 
-    y = X.pop("% Silica Concentrate_lag_180")  # this removes the target column from X and puts it into y
+    y = X.pop("% Silica Concentrate_lag_-180")  # this removes the target column from X and puts it into y
 
     logger.info(f"Datasets X and y are ready to be used during training.")
 
