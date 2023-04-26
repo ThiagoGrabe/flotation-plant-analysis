@@ -9,15 +9,17 @@ import hydra
 from omegaconf import DictConfig
 
 _steps = [
-    "download",
+    "get_data",
     "basic_cleaning",
-    "data_check",
+    "create_datasets",
     "data_split",
-    "train_random_forest",
-    # NOTE: We do not include this in the steps so it is not run by mistake.
-    # You first need to promote a model export to "prod" before you can run this,
-    # then you need to run this step explicitly
-#    "test_regression_model"
+    "tx_pepiline"
+]
+
+_models = [
+    "lasso",
+    "xgboost",
+    "random_forest"
 ]
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
@@ -34,6 +36,11 @@ def go(config: DictConfig):
     # Steps to execute
     steps_par = config['main']['steps']
     active_steps = steps_par.split(",") if steps_par != "all" else _steps
+
+    # Models to train/execute
+    # Steps to execute
+    models_par = config['main']['models']
+    active_models = models_par.split(",") if models_par != "all" else _models
 
     # Move to a temporary directory
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -62,54 +69,82 @@ def go(config: DictConfig):
                     "output_description": "Cleansed data."
                 },
             )
+           
+        if "create_datasets" in active_steps:
+            _ = mlflow.run(
+                os.path.join(hydra.utils.get_original_cwd(), "src", "create_datasets"),
+                "main",
+                parameters={
+                    "input_artifact": "cleansed_mining_flotation_plant.csv:latest",
+                    "ts": config["modeling"]["ts"],
+                    "tx": config["modeling"]["tx"],
+                    "output_artifact_ts": "ts.csv",
+                    "output_type_ts": "time_series_data",
+                    "output_description_ts": "Time Series data.",
+                    "output_artifact_tx": "tx.csv",
+                    "output_type_tx": "tabular_data",
+                    "output_description_tx": "tabular data."
+                },
+            )
 
         if "data_check" in active_steps:
+            raise NotImplementedError
             _ = mlflow.run(
                 os.path.join(hydra.utils.get_original_cwd(), "src", "data_check"),
                 "main",
                 parameters={
                     "ref": "cleansed_mining_flotation_plant.csv:reference",
                     "csv": "cleansed_mining_flotation_plant.csv:latest",
-                    "min_price": config['etl']['min_price'],
-                    "max_price": config['etl']['max_price'],
                     "kl_threshold" : config["data_check"]["kl_threshold"]
                 },
             )
 
         if "data_split" in active_steps:
             _ = mlflow.run(
-                os.path.join(hydra.utils.get_original_cwd(), "src", "train_val_test_split"),
+                os.path.join(hydra.utils.get_original_cwd(), "src", "data_split"),
                 "main",
                 parameters={
-                    "input": "cleansed_mining_flotation_plant.csv:latest",
+                    "ts_input": "ts.csv:latest",
+                    "tx_input": "tx.csv:latest",
                     "test_size": config['modeling']['test_size'],
                     "random_seed": config['modeling']['random_seed'],
-                    "stratify_by": config['modeling']['stratify_by']
+                    "ts_test_size": config["modeling"]["ts_test_size"]
                     }
                 )
 
-        if "train_random_forest" in active_steps:
+        if "tx_pipeline" in active_steps:
 
-            # NOTE: we need to serialize the random forest configuration into JSON
-            rf_config = os.path.abspath("rf_config.json")
-            with open(rf_config, "w+") as fp:
-                json.dump(dict(config["modeling"]["random_forest"].items()), fp)
+            # NOTE: we need to serialize the model configuration into JSON
 
-            logger.info(rf_config)
+            configs = ['lasso_config.json', 'rf_config.json', 'xg_config.json']
+            names   = ['lasso', 'random_forest', 'xgboost']
 
-            _ = mlflow.run(
-                os.path.join(hydra.utils.get_original_cwd(), "src", "train_random_forest"),
-                "main",
-                parameters={
-                    "trainval_artifact": "trainval_data.csv:latest",
-                    "val_size": config['modeling']['val_size'],
-                    "random_seed": config['modeling']['random_seed'],
-                    "stratify_by": config['modeling']['stratify_by'],
-                    "rf_config": rf_config,
-                    "max_tfidf_features": config['modeling']['max_tfidf_features'],
-                    "output_artifact" : "random_forest_export"
-                    }
-                )
+            for json_config, names_config in zip(configs, names):
+                
+                if names_config in active_models:
+                    pass
+                else:
+                    continue
+
+                _config = os.path.abspath(json_config)
+                with open(_config, "w+") as fp:
+                    json.dump(dict(config["modeling"][names_config].items()), fp)
+
+                logger.info(f"The configuration for model {names_config} is {_config}")
+
+                _ = mlflow.run(
+                    os.path.join(hydra.utils.get_original_cwd(), "src", "tx_pipeline"),
+                    "main",
+                    parameters={
+                        "trainval_artifact": "train_tx.csv:latest",
+                        "val_size": config['modeling']['val_size'],
+                        "random_seed": config['modeling']['random_seed'],
+                        "model_config": _config,
+                        "model_name"  : names_config,
+                        "folds" :config['modeling']['kfolds'],
+                        "output_artifact" : f"{names_config}_export"
+                        }
+                    )
 
         if "test_regression_model" in active_steps:
              _ = mlflow.run(

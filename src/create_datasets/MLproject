@@ -1,0 +1,45 @@
+name: create_datasets
+conda_env: conda.yml
+
+entry_points:
+  main:
+    parameters:
+
+      ts:
+        description: ## ADD DESCRIPTION
+        type: int
+
+      tx:
+        description: ## ADD DESCRIPTION
+        type: int
+
+      output_artifact_ts:
+        description: ## ADD DESCRIPTION
+        type: string
+
+      output_type_ts:
+        description: ## ADD DESCRIPTION
+        type: string
+
+      output_description_ts:
+        description: ## ADD DESCRIPTION
+        type: string
+
+      output_artifact_tx:
+        description: ## ADD DESCRIPTION
+        type: string
+
+      output_type_tx:
+        description: ## ADD DESCRIPTION
+        type: string
+
+      output_description_tx:
+        description: ## ADD DESCRIPTION
+        type: string
+
+      input_artifact:
+        description: ## ADD DESCRIPTION
+        type: string
+
+    command: >-
+        python run.py  --input_artifact {input_artifact} --ts {ts}  --tx {tx} --output_artifact_ts {output_artifact_ts}  --output_type_ts {output_type_ts}  --output_description_ts {output_description_ts} --output_artifact_tx {output_artifact_tx}  --output_type_tx {output_type_tx}  --output_description_tx {output_description_tx}

@@ -112,8 +112,12 @@ wandb/
 mlruns/
 outputs/
 random_forest_dir/
+xgboost_dir/
+lasso_dir/
 multirun/
 
 # data
 src/get_data/data
 src/basic_cleaning/cleansed_mining_flotation_plant.csv
+*.csv
+*.png

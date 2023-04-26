@@ -58,13 +58,17 @@ def go(args):
 
     logger.info('Starting Basic Feature Engineering.')
     # Basic Feature Engineering
-    df['Shift'] = np.nan
-    for idx in df.between_time(start_time='00:00:00', end_time='08:00:00').index.tolist():
-        df.loc[idx, "Shift"] = "A"
-    for idx in df.between_time(start_time='08:01:00', end_time='16:00:00').index.tolist():
-        df.loc[idx, "Shift"] = "B"
-    for idx in df.between_time(start_time='16:01:00', end_time='23:59:59').index.tolist():
-        df.loc[idx, "Shift"] = "C"
+    # Bining Shifts
+    bins = [0, 6, 12, 18, 24]
+    labels = ['Shift A', 'Shift B', 'Shift C', 'Shift D']
+    df['Shift'] = pd.cut(df.index.hour, bins, labels=labels, right=False)
+
+    # Bining Production Levels
+    df['Production Level'] = np.nan
+    p_max = np.max(df['Ore Pulp Flow'])
+    bins = [0, 380, 410, p_max]
+    labels = ['Low Production', 'Mid Production', 'High Production']
+    df['Production Level'] = pd.cut(df['Ore Pulp Flow'], bins=bins, labels=labels)
     logger.info('Finished Basic Feature Engineering.')
     
     logger.info('Saving Dataset.')

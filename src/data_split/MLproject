@@ -1,0 +1,29 @@
+name: download_file
+conda_env: conda.yml
+
+entry_points:
+  main:
+    parameters:
+
+      ts_input:
+        description: Time Series Data to split (a CSV file)
+        type: string
+
+      tx_input:
+        description: Tabular Data to split (a CSV file)
+        type: string
+
+      test_size:
+        description: Size of the test split. Fraction of the dataset, or number of items
+        type: string
+
+      random_seed:
+        description: Seed for the random number generator. Use this for reproducibility
+        type: string
+        default: 42
+
+      ts_test_size:
+        description: Size of the test split. Date from the test should be used
+        type: string
+
+    command: "python run.py --ts_input {ts_input} --tx_input {tx_input} --test_size {test_size} --random_seed {random_seed} --ts_test_size {ts_test_size}"

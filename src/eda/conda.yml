@@ -12,3 +12,7 @@ dependencies:
   - pip:
       - wandb==0.13.9
       - mlflow==2.2.2
+      - sktime==0.15.1
+      - seaborn
+      - xgboost
+      - shap

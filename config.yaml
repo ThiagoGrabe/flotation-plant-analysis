@@ -1,11 +1,9 @@
 main:
-  components_repository: "https://https://github.com/ThiagoGrabe/flotation-plant-analysis.git#components"
-  # All the intermediate files will be copied to this directory at the end of the run.
-  source_repository: "https://https://github.com/ThiagoGrabe/flotation-plant-analysis.git#src"
   # Set this to null if you are running in prod
   project_name: ihm
   experiment_name: development
   steps: all
+  models: random_forest
 etl:
   sample: "MiningProcess_Flotation_Plant_Database.csv"
 data_check:
@@ -13,25 +11,32 @@ data_check:
 modeling:
   # Fraction of data to use for test (the remaining will be used for train and validation)
   test_size: 0.2
-  # Fraction of remaining data to use for validation
   val_size: 0.2
   # Fix this for reproducibility, change to have new splits
   random_seed: 42
-  # Column to use for stratification (use "none" for no stratification)
-  stratify_by: "neighbourhood_group"
-  # Maximum number of features to consider for the TFIDF applied to the title of the
-  # insertion (the column called "name")
-  max_tfidf_features: 5
-  # NOTE: you can put here any parameter that is accepted by the constructor of
-  # RandomForestRegressor. This is a subsample, but more could be added:
+  # Get Time Series and Tabular Data
+  ts: 1
+  tx: 1
+  # For the Time Series Data, from which date should we keet for testing
+  ts_test_size: "2017-08"
+  kfolds: 5
   random_forest:
-    n_estimators: 200
-    max_depth: 10
+    module: "sklearn.ensemble"
+    estimator: "RandomForestRegressor"
+    n_estimators: 50
+    max_depth: 5
     min_samples_split: 4
     min_samples_leaf: 3
-    # Here -1 means all available cores
     n_jobs: -1
-    criterion: mae
-    max_features: 0.5
-    # DO not change the following
-    oob_score: true
+    criterion: absolute_error
+  xgboost:
+    module: "xgboost"
+    estimator: "XGBRegressor"
+    n_estimators: 200
+    max_depth: 10
+    learning_rate: 0.001
+    random_state: 42
+  lasso:
+    module: "sklearn.linear_model"
+    estimator: "Lasso"
+    alpha: 0.1

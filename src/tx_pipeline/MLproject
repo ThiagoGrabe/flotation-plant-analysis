@@ -18,19 +18,18 @@ entry_points:
         type: string
         default: 42
 
-      stratify_by:
-        description: Column to use for stratification (if any)
-        type: string
-        default: 'none'
-
-      rf_config:
-        description: Random forest configuration. A path to a JSON file with the configuration that will
-                     be passed to the scikit-learn constructor for RandomForestRegressor.
+      model_config:
+        description: Model configuration. A path to a JSON file with the configuration that will
+                     be passed to the scikit-learn constructor for a given model.
         type: string
 
-      max_tfidf_features:
-        description: Maximum number of words to consider for the TFIDF
+      model_name:
+        description: Model name
         type: string
+
+      folds:
+        description: Folds to used in the K-Fold Cross Validation for Tabular Machine Learning application.
+        type: int
 
       output_artifact:
         description: Name for the output artifact
@@ -40,7 +39,7 @@ entry_points:
       python run.py --trainval_artifact {trainval_artifact} \
                     --val_size {val_size} \
                     --random_seed {random_seed} \
-                    --stratify_by {stratify_by} \
-                    --rf_config {rf_config} \
-                    --max_tfidf_features {max_tfidf_features} \
+                    --model_config {model_config} \
+                    --model_name {model_name} \
+                    --folds {folds} \
                     --output_artifact {output_artifact}
