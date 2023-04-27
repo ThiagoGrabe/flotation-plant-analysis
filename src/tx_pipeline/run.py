@@ -180,7 +180,7 @@ def get_inference_pipeline(model_config):
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description="Basic cleaning of dataset")
+    parser = argparse.ArgumentParser(description="Pipeling for tabular data using the models in the config.yml file.")
 
     parser.add_argument(
         "--trainval_artifact",
