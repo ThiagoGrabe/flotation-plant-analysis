@@ -121,6 +121,3 @@ src/get_data/data
 src/basic_cleaning/cleansed_mining_flotation_plant.csv
 *.csv
 *.png
-
-# Images Folder
-*images/
