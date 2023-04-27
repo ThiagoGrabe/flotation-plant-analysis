@@ -54,7 +54,9 @@ def go(args):
     X = pd.read_csv(trainval_local_path, decimal=",")
     X = X.apply(pd.to_numeric).dropna()
 
-    y = X.pop("% Silica Concentrate_lag_-180")  # this removes the target column from X and puts it into y
+    logger.info(f"Target Feature {args.target_variable}")
+    run.log({"Target Feature" : args.target_variable})
+    y = X.pop(args.target_variable)  # this removes the target column from X and puts it into y
 
     logger.info(f"Datasets X and y are ready to be used during training.")
 
@@ -120,6 +122,8 @@ def go(args):
         metric = getattr(module,metric_name)
         if metric_name == 'mean_squared_error':
             metric_value = metric(y_val, y_pred, squared=False)
+            logger.info(f"Validation {metric_name}: {round(metric_value,4)}")
+            run.log({f"Validation {metric_name}": round(metric_value,4)})
         else:
             metric_value = metric(y_val, y_pred)
             logger.info(f"Validation {metric_name}: {round(metric_value,4)}")
@@ -182,6 +186,13 @@ if __name__ == "__main__":
         "--trainval_artifact",
         type=str,
         help="Artifact containing the training dataset. It will be split into train and validation"
+    )
+
+    parser.add_argument(
+        "--target_variable",
+        type=str, 
+        help="Target Variable to be predicted. Must be a string that matches with the dataframe.",
+        required=True
     )
 
     parser.add_argument(

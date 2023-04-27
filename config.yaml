@@ -25,6 +25,7 @@ modeling:
   # For the Time Series Data, from which date should we keet for testing
   ts_test_size: "2017-08"
   kfolds: 5
+  target_variable : "% Silica Concentrate_lag_-180"
   random_forest:
     module: "sklearn.ensemble"
     estimator: "RandomForestRegressor"

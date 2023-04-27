@@ -28,7 +28,9 @@ def go(args):
 
     # Read test dataset
     X_test = pd.read_csv(test_dataset_path, decimal=",").dropna()
-    y_test = X_test.pop("% Silica Concentrate_lag_-180")
+    y_test = X_test.pop(args.target_variable)
+    logger.info(f"Target Feature {args.target_variable}")
+    run.log({"Target Feature" : args.target_variable})
 
     logger.info("Loading model and performing inference on test set")
     sk_pipe = mlflow.sklearn.load_model(model_local_path)
@@ -40,6 +42,8 @@ def go(args):
         metric = getattr(module,metric_name)
         if metric_name == 'mean_squared_error':
             metric_value = metric(y_test, y_pred, squared=False)
+            logger.info(f"Validation {metric_name}: {round(metric_value,4)}")
+            run.log({f"Validation {metric_name}": round(metric_value,4)})
         else:
             metric_value = metric(y_test, y_pred)
             logger.info(f"Validation {metric_name}: {round(metric_value,4)}")
@@ -60,6 +64,13 @@ if __name__ == "__main__":
         "--test_dataset",
         type=str, 
         help="Test dataset",
+        required=True
+    )
+
+    parser.add_argument(
+        "--target_variable",
+        type=str, 
+        help="Target Variable to be predicted. Must be a string that matches with the dataframe.",
         required=True
     )
 

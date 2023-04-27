@@ -9,9 +9,14 @@ entry_points:
         description: An MLflow serialized model
         type: string
 
+      target_variable:
+        description: Target feature to be predicted
+        type: string
+
       test_dataset:
         description: The test artifact
         type: string
 
     command: "python run.py   --mlflow_model {mlflow_model} \
+                              --target_variable {target_variable} \
                               --test_dataset {test_dataset}"

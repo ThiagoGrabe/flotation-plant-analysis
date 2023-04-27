@@ -138,6 +138,7 @@ def go(config: DictConfig):
                     parameters={
                         "trainval_artifact": "train_tx.csv:latest",
                         "val_size": config['modeling']['val_size'],
+                        "target_variable" : config["modeling"]["target_variable"],
                         "random_seed": config['modeling']['random_seed'],
                         "model_config": _config,
                         "model_name"  : names_config,
@@ -156,6 +157,7 @@ def go(config: DictConfig):
                 "main",
                 parameters={
                     "mlflow_model": f"{model_name}_export:{tag}",
+                    "target_variable" : config["modeling"]["target_variable"],
                     "test_dataset": "test_tx.csv:latest"
                     }
                 )

@@ -9,6 +9,10 @@ entry_points:
         description: Train dataset
         type: string
 
+      target_variable:
+        description: Target feature to be predicted
+        type: string
+
       val_size:
         description: Size of the validation split. Fraction of the dataset, or number of items
         type: string
@@ -37,6 +41,7 @@ entry_points:
 
     command: >-
       python run.py --trainval_artifact {trainval_artifact} \
+                    --target_variable {target_variable} \
                     --val_size {val_size} \
                     --random_seed {random_seed} \
                     --model_config {model_config} \
