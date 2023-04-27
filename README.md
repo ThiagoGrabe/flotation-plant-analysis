@@ -9,9 +9,7 @@ The first column shows time and date range (from march of 2017 until september o
 The second and third columns are quality measures of the iron ore pulp right before it is fed into the flotation plant. Column 4 until column 8 are the most important variables that impact in the ore quality in the end of the process. From column 9 until column 22, we can see process data (level and air flow inside the flotation columns), which also impact in ore quality. The last two columns are the final iron ore pulp quality measurement from the lab.
 Target is to predict the last column, which is the % of silica in the iron ore concentrate.
 
-## Inspiration
-
-I have been working in this dataset for at least six months and would like to see if the community can help to answer the following questions:
+## Quenstions to be answered
 
  1. Is it possible to predict % Silica Concentrate every minute?
 
@@ -104,5 +102,24 @@ Then, we can run the test pipeline with the model with a _prod_ tag.
 user@group:~$ mlflow run . -P steps=test_tx_pipeline
 ```
 
+One interesting point of this modeling method is you can set as many hyperparameters as you want following the syntax below. In the example, we are training many instances of the _xgboost_ regressor with different set of hyperparameters. It is the same as using a __grid_search__ strategy to search for the best hyperameters.
 
+```console
+user@group:~$ mlflow run . -P steps=tx_pipeline -P hydra_options="main.models=xgboost modeling.xgboost.max_depth=5,10,15,20 modeling.xgboost.n_estimators=10,20,50,100,150,200 -m"
+```
 
+## Results
+
+This project was developed as POC and the results should lead not to a final result, but to an understanding if a machine learning application may help the customer to improve its operation. Some questions were proposed and we try to answer them:
+
+ 1. Is it possible to predict % Silica Concentrate every minute?
+
+    -__ans:__ It is possible, but not necessary. As the data we have for training has a sample by the hour and the operational parameters does not take imediate change into the process, we believe that a 5 or 10 minutes prediction for the next 10 or 15 minues would be enough for the operator to have more insights about operation. Today, the operator has one input every hour, and this input is late and does not represent the current situation. Then, using a machine learning to support a 10 or 15 minutes decision is important.
+
+ 2. How many steps (hours) ahead can we predict % Silica in Concentrate? This would help engineers to act in predictive and optimized way, mitigatin the % of iron that could have gone to tailings.
+
+    -__ans:__ Predicting the next step or next hour would represent a huge operation improvement. I rather be conservative in this case and support the operational sector with a model to predict the next minutes or the next hour.
+
+ 3. Is it possible to predict % Silica in Concentrate whitout using % Iron Concentrate column (as they are highly correlated)?
+
+    --__ans:__ As they are coming from the same analysis (one hour late) we can use only lagged % Iron Concentrate. But we the model might get unprecise signals since it is not clear when in time that specific concentration of iron was and which parameters are related to it. We prefere not using this feature to avoid data leakage.
